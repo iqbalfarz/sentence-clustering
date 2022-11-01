@@ -1,5 +1,3 @@
-import joblib
-import numpy as np
 import pandas as pd
 from sklearn import metrics
 from time import time
@@ -25,7 +23,7 @@ def prediction(dataset_path, output_filepath, label=False):
     if "Text" not in dataset.columns:
         raise ValueError("dataset must have a column name `Text`")
 
-    if label is True and "label" not in dataset.columns:
+    if str.lower(label)=="true" and "label" not in dataset.columns:
         raise ValueError("You have made `label=True` but dataset doesn't contain `label` column.")
 
     # a little bit processing to the dataset
@@ -34,10 +32,6 @@ def prediction(dataset_path, output_filepath, label=False):
     else:
         dataset = dataset[["Text"]]
     dataset.fillna("None",inplace=True)
-    
-    # load vectorizer
-    # print("[INFO] loading vectorizer...")
-    # vectorizer = joblib.load("./model/tfidf_vectorizer.pickle")
 
     # doing featurization usign TfidfVectorizer
     vectorizer = TfidfVectorizer(
@@ -54,17 +48,6 @@ def prediction(dataset_path, output_filepath, label=False):
     print(f"vectorization done in {time() - t0:.5f} s")
     print(f"n_samples: {X.shape[0]}, n_features: {X.shape[1]}")
 
-    # transform the dataset
-    # print("[INFO] Getting TF-IDF embedding for the dataset...")
-    # X = vectorizer.fit_transform(dataset["Text"])
-
-    # load lsa pipeline to reduce the dimension
-    # print("[INFO] loading LSA model...")
-    # lsa = joblib.load("./model/lsa.pickle")
-
-    # print("[INFO] reducing dimension...")
-    # X = lsa.fit_transform(X)
-
     print(f"[INFO] Reducing dimensionality...")
     # As TruncatedSVD result is not Normalized, we'll Normalize the result also
     lsa = make_pipeline(TruncatedSVD(n_components=100), Normalizer(copy=False))
@@ -74,13 +57,9 @@ def prediction(dataset_path, output_filepath, label=False):
     print(f"LSA done in {time() - t0:.3f} s")
     print(f"Explained variance of the SVD step: {explained_variance * 100:.1f}%")
 
-    # # load MiniBatchKMeans model
-    # print("[INFO] loading MiniBatchKMeans model...")
-    # kmeans = joblib.load("./model/best_mb_kmeans.pickle")
-
     print("[INFO] fitting MiniBatchKMeans...")
     from sklearn.cluster import MiniBatchKMeans
-    K = 156 # best K found
+    K = 156 # best K found while doing experiments
     kmeans = MiniBatchKMeans(
         n_clusters=K,
         max_iter=100,
@@ -91,7 +70,7 @@ def prediction(dataset_path, output_filepath, label=False):
     print("[INFO] Getting predictions...")
     dataset["predictions"] = pd.Series(kmeans.predict(X))
 
-    if label==True:
+    if str.lower(label)=="true":
         print("[METRICS] Calculating metrices using groundtruth labels...")
         # get the scores which needs label of the dataset
         print(f"adjusted mutual info score [perfect is 1.0]: {metrics.adjusted_mutual_info_score(dataset.label, dataset.predictions)}")
