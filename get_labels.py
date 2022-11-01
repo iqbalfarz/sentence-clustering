@@ -93,7 +93,7 @@ def prediction(dataset_path, output_filepath, label=False):
     print(f"[INFO] Saving the dataset to {output_filepath}")
     dataset.to_csv(output_filepath, index=False)
 
-    print(f"[TIME-TAKEN] total time taken: {time()-start_time}s")
+    print(f"[TIME-TAKEN] total time taken: {time()-start_time} seconds")
 
 import argparse
 
@@ -116,8 +116,7 @@ if __name__=="__main__":
         "-l",
         "--label",
         help="whether to use the label of original dataset to validate the cluster or not. Boolean value",
-        type=bool,
-        default=False,
+        default="false",
         required=False
     )
     args = parser.parse_args()
